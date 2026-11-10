@@ -61,19 +61,20 @@ def drive_secrets(drive_root):
 
 
 def main():
+    # Everything after the first "--" is the command; argparse would otherwise take the
+    # command's own options for ours.
+    argv = sys.argv[1:]
+    if "--" not in argv:
+        fail("no command given; usage: just run <exp-id> [--run NAME] [--keep] -- <command...>")
+    split = argv.index("--")
+    command = argv[split + 1 :]
+    if not command:
+        fail("no command given after --")
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("experiment", help="directory name under experiments/")
     parser.add_argument("--run", help="run name; reuse one to resume it (default: <UTC time>-<commit>)")
-    parser.add_argument(
-        "--keep", action="store_true", help="leave the VM running afterwards (stop it with `colab stop`)"
-    )
-    parser.add_argument(
-        "command", nargs=argparse.REMAINDER, help="command run with `uv run` in the experiment directory"
-    )
-    args = parser.parse_args()
-    command = args.command[1:] if args.command[:1] == ["--"] else args.command
-    if not command:
-        fail("no command given; usage: just run <exp-id> -- <command...>")
+    parser.add_argument("--keep", action="store_true", help="leave the VM running afterwards")
+    args = parser.parse_args(argv[:split])
 
     exp_dir = ROOT / "experiments" / args.experiment
     if not (exp_dir / "colab.toml").is_file():

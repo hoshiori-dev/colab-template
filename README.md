@@ -68,7 +68,10 @@ the same run name resumes from the bucket, which matters because Colab sessions 
    narrow.
 5. Authorize rclone for Google Drive with the narrowest scope:
    `rclone config create gdrive drive scope=drive.file`. With this scope rclone sees only the files it uploaded
-   itself, so private datasets go to Drive through `just drive-push`, not through the browser.
+   itself, so private datasets go to Drive through `just drive-push`, not through the browser. rclone's built-in
+   Google client ID is being retired during 2026, so
+   [create your own](https://rclone.org/drive/#making-your-own-client-id) and add `client_id=... client_secret=...`
+   to the command.
 6. Run `just init-storage` and `just init-labels`.
 7. In the repository settings, allow merge commits. Experiment pull requests are merged with a merge commit so that
    the commits an experiment README cites remain on `main`.

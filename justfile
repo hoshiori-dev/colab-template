@@ -64,7 +64,7 @@ init-labels:
 
 # List session files in the bucket, optionally under <exp-id>[/<run>].
 bucket-ls path="":
-    hf buckets list "$BUCKET/{{ path }}" --tree -h
+    hf buckets list "$BUCKET/{{ path }}" --tree -R -h
 
 # Download a run's session files to .local/out/<exp-id>/<run>/.
 bucket-pull exp run:
