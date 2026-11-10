@@ -1,0 +1,14 @@
+# Dependencies for rendering this report. Not a member of the root workspace.
+
+[project]
+name = "report-affine-augmentation"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=6",
+    "matplotlib>=3.9",
+    "nbclient>=0.10",
+    "nbformat>=5",
+    "pandas>=2.2",
+    "pyyaml>=6",
+]

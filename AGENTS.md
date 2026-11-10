@@ -17,7 +17,8 @@ merges. `README.md` explains the design to people. Read this file first on every
   refuses to start while the experiment's directory has uncommitted changes. The README's Reproduce section names
   the commit, the commands and the version of every dataset.
 - **You write, a person merges.** You may open issues, comment, push your own branches, and open and update pull
-  requests. A person merges every pull request, and a person runs the `deliver-*` recipes that publish weights. Leave
+  requests. A person merges every pull request, runs the `deliver-*` recipes that upload weights, and decides when an
+  uploaded model repository becomes public. Leave
   `main`, other people's issues and comments, and repository settings as they are unless the user asks in this
   conversation.
 - **Secrets stay in `.env` and in rclone's own config.** They reach the VM only through `just run`. Keep them out of

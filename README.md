@@ -32,7 +32,7 @@ somewhere a later reader will find it, including what nobody asked about:
 | how to work in this repository               | `.agents/knowledge/`, or a skill        |
 
 **A person merges.** Merging accepts the answer and closes the question. A negative answer closes it just the same.
-After the merge, a person decides whether the weights are published.
+After the merge, a person uploads the weights, privately at first, and decides whether they become public.
 
 ## What it is built from
 
@@ -42,7 +42,7 @@ After the merge, a person decides whether the weights are published.
 | Public datasets              | Hugging Face Hub datasets, pinned to a revision                                       |
 | Private datasets             | Google Drive through rclone                                                           |
 | Checkpoints and session files | A private Hugging Face bucket, one prefix per run                                    |
-| Public weights               | Hugging Face Hub model repos                                                          |
+| Weights for others           | Hugging Face Hub model repos, uploaded private and made public when you decide        |
 | Private weights              | Google Drive                                                                          |
 | Dependencies                 | uv, declared inside each script as PEP 723 inline metadata and locked per script      |
 | Reports                      | Quarto (HTML, and PDF through Typst)                                                  |
@@ -110,6 +110,8 @@ Then open your agent and tell it what you want to find out, or open the first Qu
 | Upload a private dataset                      | `just drive-push ./data datasets/my-set/v1`                |
 | Check formatting, lint and lock files         | `just check`                                               |
 | See which credentials are in place            | `just auth-check`                                          |
+| Render a report to HTML and PDF               | `just render`, in the report's directory                   |
+| Start a demo                                  | `just serve`, in the demo's directory                      |
 | Publish a merged experiment's weights         | `just deliver-hub ...` or `just deliver-drive ...`         |
 
 The script commands are run from the experiment's directory. `just` alone lists everything.
@@ -129,6 +131,44 @@ docs/                         findings that hold beyond one experiment
 ```
 
 A directory appears when it has something to hold.
+
+## The worked example
+
+The repository carries one small research project, built through its own issues and pull requests so that the
+workflow can be read from a real case and not only from its description.
+
+- The direction is an Epic: [#2](https://github.com/hoshiori-dev/colab-template/issues/2), how a small digit classifier copes with rotated, shifted and rescaled digits.
+- The first Question under it is [#3](https://github.com/hoshiori-dev/colab-template/issues/3): does affine augmentation close the accuracy gap on perturbed digits? The
+  plan was posted there before anything ran, and the answer when it was known.
+- The experiment that answers it is recorded in [#8](https://github.com/hoshiori-dev/colab-template/pull/8). Its milestone comments show what a record looks like: the
+  first launch that worked and the bugs found on the way, the result, and a second run after the project's design
+  changed, which corrected a finding of the first.
+  [`experiments/003-affine-augmentation/`](experiments/003-affine-augmentation/README.md) holds the scripts, the
+  results and the answer: augmentation lifts accuracy on perturbed digits from 84.0% to 97.5% and leaves a gap of
+  1.1 points.
+- What the experiment taught went to three places: its README, [`docs/geometric-shift.md`](docs/geometric-shift.md)
+  for what holds beyond it, and [`.agents/knowledge/colab.md`](.agents/knowledge/colab.md) for what it taught about
+  running on Colab.
+- Two things it noticed without being asked became [#9](https://github.com/hoshiori-dev/colab-template/issues/9) and [#10](https://github.com/hoshiori-dev/colab-template/issues/10). They are open on purpose: either is a good
+  first experiment for trying the template.
+- The engineering around it was done as Tasks: the demo [`demos/digit-sketch/`](demos/digit-sketch) ([#5](https://github.com/hoshiori-dev/colab-template/issues/5)) and
+  the report [`reports/affine-augmentation/`](reports/affine-augmentation) ([#6](https://github.com/hoshiori-dev/colab-template/issues/6)). A third Task, a shared library
+  ([#4](https://github.com/hoshiori-dev/colab-template/issues/4)), was built and then dropped when the project decided that experiments and demos should not depend on
+  shared code; the demo carries its own copy of the model.
+
+The example's weights are uploaded to `discovery-loop/colab-template-mnist-cnn`, which is private. To try the demo
+without access to it, run the experiment and point the demo at the result:
+`DIGITS_WEIGHTS=<path to model.safetensors> just serve`.
+
+The private dataset in the example is a stand-in: a perturbed copy of the public MNIST test set, generated by a script
+and kept on Drive only to exercise that path.
+
+## Starting your own project
+
+Issues and pull requests are not copied when you create a repository from a template, so the example's history stays
+here. Remove its files: `experiments/003-affine-augmentation/`, `demos/digit-sketch/`,
+`reports/affine-augmentation/` and `docs/`. Nothing else refers to them. Point `BUCKET` and `DRIVE_ROOT` in the
+`justfile` at your own storage, and replace this section and the one above with a description of your project.
 
 ## Agents
 

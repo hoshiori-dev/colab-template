@@ -1,0 +1,7 @@
+# Commands of this report. A recipe not defined here falls back to the root justfile.
+
+set fallback
+
+# Render the report to _output/report.html and _output/report.pdf.
+render:
+    uv run quarto render

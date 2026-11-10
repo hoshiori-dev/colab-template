@@ -11,7 +11,7 @@ Face Hub, or delivering weights.
 | Private datasets                          | Google Drive, `$DRIVE_ROOT/datasets/<name>/<version>/` | `drive-inputs` in the script, `just drive-*`  |
 | Session files: checkpoints, logs, metrics | Hugging Face bucket, `$BUCKET/<exp-id>/<run>/`         | `$OUT_DIR` on the VM, `just bucket-*`         |
 | Results the answer rests on               | Git, `experiments/<id>/results/`                       | copied from the bucket by a recipe or by hand |
-| Public weights                            | Hugging Face Hub model repos                           | `just deliver-hub` (a person, after merge)    |
+| Weights for others                        | Hugging Face Hub model repos, private until released   | `just deliver-hub` (a person, after merge)    |
 | Private weights                           | Google Drive, `$DRIVE_ROOT/models/...`                 | `just deliver-drive` (a person, after merge)  |
 
 `BUCKET`, `DRIVE_ROOT` and `COLAB_PYTHON` are set at the top of the root `justfile`. The bucket is scratch space:
@@ -91,8 +91,9 @@ call); the remote should use a client ID of the project's own, see README.md, Se
 
 ## Delivery
 
-Delivery publishes and is done by a person after the pull request is merged: `just deliver-hub <exp-id> <run>
-<namespace/repo>` uploads the run's `deliver/` directory as a public model repo, `just deliver-drive <exp-id> <run>
+Delivery is done by a person after the pull request is merged: `just deliver-hub <exp-id> <run>
+<namespace/repo>` uploads the run's `deliver/` directory as a private model repo, which its owner makes public on the
+Hub when it should be (code that loads it needs a token until then), `just deliver-drive <exp-id> <run>
 <path>` copies it to Drive. Have the script write `deliver/` itself at the end of the run, and name the run to
 deliver in the pull request body. Clean up afterwards with `just bucket-rm <exp-id>`.
 

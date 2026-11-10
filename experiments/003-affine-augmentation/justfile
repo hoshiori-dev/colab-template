@@ -21,7 +21,7 @@ results run:
     just bucket-pull {{ exp }} {{ run }}
     python3 collect.py {{ quote(out / run) }}
 
-# Person only, after merge: publish the run's weights with the model card as a public Hub model repo.
+# Person only, after merge: upload the run's weights with the model card as a private Hub model repo.
 deliver run repo:
     just bucket-pull {{ exp }} {{ run }}
     cp model_card.md {{ quote(out / run / "deliver/README.md") }}
