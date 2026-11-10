@@ -85,7 +85,7 @@ augmentation, which is the best case for augmentation.
 
 ## Reproduce
 
-Run `sweep-2`, from commit `626cee47a9cc438921d5739e62df4e2dc4ae34d2` on one Colab T4, in this directory:
+Run `sweep-2`, from commit `59b5ffef2228faed3d69a21255dc57961af1228e` on one Colab T4, in this directory:
 
 ```sh
 just shifted v1          # builds the perturbed set and uploads it to Drive; already done for v1
@@ -98,6 +98,9 @@ Data read: `ylecun/mnist` at revision `77f3279092a1c1579b2250db8eafed0ad422088c`
 `832edcd241448aea80c3750fa9f8aee3a8363ee2187c0f2a96f8a11122ce8be0`). The environment is `train.requirements.txt`
 (PyTorch 2.15.0 with CUDA 13.2) installed over Colab's Python 3.13. The launch took four minutes, most of it
 installing PyTorch; each of the six trainings took 6 to 8 seconds.
+
+The run itself recorded commit `626cee4` (the `commit` column of `results/runs.csv`). That was the same commit before
+this branch was rebased onto `main`; the files of this directory are identical in both.
 
 The weights to publish are `affine-seed0` of that run, which `train.py` copies to `deliver/`:
 `just deliver sweep-2 discovery-loop/colab-template-mnist-cnn` (a person, after the merge).
