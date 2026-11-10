@@ -1,0 +1,12 @@
+# Dependencies of one experiment. Not a member of the root workspace: `uv lock` run in
+# this directory writes this experiment's own uv.lock, and the Colab VM installs exactly
+# that lock.
+
+[project]
+name = "exp-003-affine-augmentation"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = ["digits"]
+
+[tool.uv.sources]
+digits = { path = "../../packages/digits", editable = true }
