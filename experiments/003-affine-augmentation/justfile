@@ -1,0 +1,28 @@
+# Commands of this experiment. A recipe not defined here falls back to the root justfile,
+# so `just run train.py`, `just lock train.py`, `just bucket-ls` and the rest work from
+# this directory.
+
+set fallback
+
+exp := file_name(justfile_directory())
+out := justfile_directory() / "../../.local/out" / exp
+
+# Build the perturbed test set and upload it to Drive as datasets/mnist-shifted/<version>.
+shifted version="v1":
+    uv run make_shifted.py
+    just drive-push data/mnist-shifted datasets/mnist-shifted/{{ version }}
+
+# Train every arm and seed on Colab; the same run name resumes an interrupted sweep.
+sweep run:
+    just run train.py --run {{ run }}
+
+# Fetch a run from the bucket and write results/runs.csv and results/history.csv from it.
+results run:
+    just bucket-pull {{ exp }} {{ run }}
+    python3 collect.py {{ quote(out / run) }}
+
+# Person only, after merge: publish the run's weights with the model card as a public Hub model repo.
+deliver run repo:
+    just bucket-pull {{ exp }} {{ run }}
+    cp model_card.md {{ quote(out / run / "deliver/README.md") }}
+    just deliver-hub {{ exp }} {{ run }} {{ repo }}
