@@ -1,10 +1,9 @@
 """Gather the metrics.json of every (arm, seed) of a run into the committed result files.
 
-    just bucket-pull 003-affine-augmentation <run>
-    uv run python collect.py ../../.local/out/003-affine-augmentation/<run>
+    just results <run>        # fetches the run from the bucket, then runs this
 
 Writes results/runs.csv (final accuracies, one row per arm and seed) and
-results/history.csv (accuracies after every epoch).
+results/history.csv (accuracies after every epoch). Standard library only.
 """
 
 import csv
@@ -24,7 +23,7 @@ if not metrics:
 
 with open(results / "runs.csv", "w", newline="") as file:
     writer = csv.writer(file, lineterminator="\n")
-    writer.writerow(["arm", "seed", "epochs", "clean_accuracy", "shifted_accuracy", "device", "commit"])
+    writer.writerow(["arm", "seed", "epochs", "clean_accuracy", "shifted_accuracy", "device", "torch", "commit"])
     for m in metrics:
         final = m["history"][-1]
         writer.writerow(
@@ -35,6 +34,7 @@ with open(results / "runs.csv", "w", newline="") as file:
                 final["clean_accuracy"],
                 final["shifted_accuracy"],
                 m["device"],
+                m["torch"],
                 m["commit"],
             ]
         )

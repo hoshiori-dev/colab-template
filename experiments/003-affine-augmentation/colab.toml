@@ -1,9 +1,0 @@
-# How `just run` executes this experiment on Colab (read by scripts/launch.py).
-
-# "cpu", a GPU (T4, L4, G4, H100, A100) or a TPU (v5e1, v6e1).
-accelerator = "T4"
-
-# Google Drive folders copied onto the VM before the command starts:
-# "<path under DRIVE_ROOT>" = "<path under this experiment directory>"
-[drive_inputs]
-"datasets/mnist-shifted/v1" = "data/mnist-shifted"
