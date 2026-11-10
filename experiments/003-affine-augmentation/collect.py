@@ -23,7 +23,7 @@ if not metrics:
     sys.exit(f"no */metrics.json under {run_dir}")
 
 with open(results / "runs.csv", "w", newline="") as file:
-    writer = csv.writer(file)
+    writer = csv.writer(file, lineterminator="\n")
     writer.writerow(["arm", "seed", "epochs", "clean_accuracy", "shifted_accuracy", "device", "commit"])
     for m in metrics:
         final = m["history"][-1]
@@ -40,7 +40,7 @@ with open(results / "runs.csv", "w", newline="") as file:
         )
 
 with open(results / "history.csv", "w", newline="") as file:
-    writer = csv.writer(file)
+    writer = csv.writer(file, lineterminator="\n")
     writer.writerow(["arm", "seed", "epoch", "clean_accuracy", "shifted_accuracy"])
     for m in metrics:
         for row in m["history"]:
