@@ -1,0 +1,20 @@
+# Root workspace: the shared libraries under packages/ and the tools that check the
+# repository. Experiments and demos are not members; each has its own pyproject.toml
+# and uv.lock and reaches a shared library as a path dependency.
+# No build-system: the root is a virtual project, uv installs only its dependencies.
+
+[project]
+name = "colab-template"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
