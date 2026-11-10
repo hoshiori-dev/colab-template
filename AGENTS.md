@@ -40,7 +40,7 @@ merges. `README.md` explains the design to people. Read this file first on every
 
 ## Commands
 
-`just` lists every recipe with its arguments. The ones you will use: `just check` (lint, format, lock files; run it
+`just` lists every recipe with its arguments. The ones you will use: `just check` (lint, format, lock files, library tests; run it
 before pushing), `just fmt`, `just new <issue> <slug>`, `just run <exp-id> -- <command...>`,
 `just bucket-ls|bucket-pull`, `just drive-ls|drive-pull|drive-push`.
 

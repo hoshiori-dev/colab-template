@@ -19,7 +19,7 @@ ruff := "uvx ruff@0.11.9"
 _default:
     @just --list --unsorted
 
-# Lint, format check, lock files up to date (what CI runs).
+# Lint, format check, lock files up to date, shared-library tests (what CI runs).
 check:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -28,6 +28,7 @@ check:
     for project in . experiments/*/ demos/*/; do
         if [ -f "$project/pyproject.toml" ]; then uv lock --check --project "$project"; fi
     done
+    uv run --all-packages pytest -q
 
 # Format and auto-fix in place.
 fmt:
