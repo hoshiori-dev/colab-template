@@ -8,7 +8,7 @@ Read this before opening an issue, starting or continuing an experiment, writing
 | ------------ | ------------------------------------------------------------------------- | ------------------------------------------------ |
 | Epic         | a direction of research that groups questions; needs no approval          | issue, label `epic`                              |
 | Question     | one question an experiment can answer                                     | issue, label `question`, sub-issue of its epic   |
-| Task         | engineering work: shared library, demo, report, project setup             | issue, label `task`                              |
+| Task         | engineering work: demo, report, project setup                             | issue, label `task`                              |
 | Experiment   | code, results and a README that answer one or more questions              | `experiments/<NNN-slug>/`                        |
 | Pull request | for an experiment, its record; for a task, an ordinary software change    | branch `exp/<id>` or `<type>/<slug>`             |
 
@@ -30,11 +30,12 @@ its main question; its README lists the others.
 
 ## Experiment loop
 
-1. `git switch -c exp/<id> main`, then `just new <issue-number> <slug>`.
+1. `git switch -c exp/<id> main`, then `just new <issue-number> <slug>`. Rename or copy the starter `main.py` into
+   one script per execution you plan (`just lock <script.py>` after editing its dependencies).
 2. Write the README's Question and Setup sections first; they are the plan. Commit, push, open a draft pull request
    from `.github/PULL_REQUEST_TEMPLATE.md` with `Closes #<n>` for every question it will answer.
-3. Iterate: change code, commit, `just run`, look at the results. Local CPU runs are fine for debugging; they are not
-   evidence.
+3. Iterate: change a script, commit, `just run <script.py>`, look at the results. Local runs (`uv run <script.py>`)
+   are fine for debugging; they are not evidence.
 4. Copy the small result files the answer rests on (metrics, tables; not checkpoints) from the bucket into
    `experiments/<id>/results/` and commit them. Reports and figures are built from these files.
 5. Land the findings (next section), bring the pull request body up to date, post the answer on each issue, mark the
@@ -84,5 +85,5 @@ After the merge a person may publish what the experiment produced (`just deliver
 ## Engineering pull requests
 
 A Task is done in one ordinary pull request, coarse-grained when that is the natural unit (a whole demo, a whole
-report). Its body keeps only Summary and Verification. Shared-library changes that an experiment needs may ride in
-the experiment's pull request when they are small; otherwise do the Task first.
+report). Its body keeps only Summary and Verification. A demo that needs an experiment's model copies the model
+definition and the preprocessing into its own file and says which experiment they come from.

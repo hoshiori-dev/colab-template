@@ -119,7 +119,7 @@ init-storage:
 init-labels:
     gh label create epic --force --color 5319e7 --description "A direction of research that groups questions"
     gh label create question --force --color 1d76db --description "A research question, answered by an experiment PR"
-    gh label create task --force --color c5def5 --description "Engineering work: shared library, demo, report, harness"
+    gh label create task --force --color c5def5 --description "Engineering work: demo, report, project setup"
 
 # List session files in the bucket, optionally under <exp-id>[/<run>].
 bucket-ls path="":

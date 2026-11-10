@@ -15,7 +15,7 @@ quickly and still be able to say, months later, why they believe what they belie
 **A question is an issue.** Anyone, agent included, opens a Question when something is worth an experiment. The issue
 says what is being asked, where the question came from, and what would count as an answer. The discussion happens
 in its comments, so the reasoning stays next to the question. An Epic is an issue that groups related questions and
-nothing more. A Task is ordinary engineering work: a shared library, a demo, a report.
+nothing more. A Task is ordinary engineering work: a demo, a report, the project setup.
 
 **An experiment is a pull request.** The experiment lives in `experiments/<issue>-<slug>/`, and its pull request is
 opened as a draft at the first push. The body is the experiment's current summary. Each major step, such as the first
@@ -44,16 +44,38 @@ After the merge, a person decides whether the weights are published.
 | Checkpoints and session files | A private Hugging Face bucket, one prefix per run                                    |
 | Public weights               | Hugging Face Hub model repos                                                          |
 | Private weights              | Google Drive                                                                          |
-| Dependencies                 | uv: a root workspace for shared libraries, one lock file per experiment               |
+| Dependencies                 | uv, declared inside each script as PEP 723 inline metadata and locked per script      |
 | Reports                      | Quarto (HTML, and PDF through Typst)                                                  |
 | Commands                     | just                                                                                  |
 
 A project built from the template will often use less than this. Delete what you do not need.
 
-`just run <experiment> -- <command>` is the piece that ties compute and storage together. It creates a Colab VM,
-uploads the committed code, installs the experiment's locked dependencies, copies the private data it declares from
-Drive, runs the command, keeps the output directory synced to the bucket, and stops the VM. Starting it again with
-the same run name resumes from the bucket, which matters because Colab sessions end without warning.
+**Every experiment and every demo stands alone.** Nothing in `experiments/` or `demos/` imports from another
+directory, and there is no shared package. When two scripts need the same function, it is copied. The duplication is
+the price of being able to read, run, move or delete one experiment without touching another.
+
+**One execution is one file.** A script carries its dependencies in its own header, so `uv run train.py` works on any
+machine with uv. A script meant for Colab adds two lines there for the accelerator and the private data it needs:
+
+```python
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["torch>=2.6", "datasets>=4"]
+#
+# [tool.colab]
+# accelerator = "T4"
+# drive-inputs = { "datasets/my-set/v1" = "data/my-set" }
+# ///
+```
+
+`just lock train.py` locks those dependencies and exports them as a requirements file for Colab's Python and for that
+accelerator, with the CUDA build of PyTorch for a GPU and the CPU build otherwise. `just run train.py` then creates a
+VM, installs that file with `colab install`, mounts the run's bucket prefix as the output directory, copies the
+private data from Drive, executes the script with `colab exec`, and stops the VM. Starting it again with the same run
+name resumes from the bucket, which matters because Colab sessions end without warning.
+
+Commands for the whole project live in the root `justfile`. Each experiment and demo has its own `justfile` for its
+own steps and falls back to the root one, so `just run`, `just lock` and the rest work from inside its directory.
 
 ## Setup
 
@@ -79,8 +101,10 @@ Then open your agent and tell it what you want to find out, or open the first Qu
 | You want to                                   | Run                                                        |
 | --------------------------------------------- | ---------------------------------------------------------- |
 | Start an experiment for issue 12              | `just new 12 label-smoothing`                              |
-| Run a command of it on Colab                  | `just run 012-label-smoothing -- python train.py`          |
-| Resume or repeat a run under the same name    | `just run 012-label-smoothing --run NAME -- python train.py` |
+| Lock a script after changing its dependencies | `just lock train.py`                                       |
+| Run a script on Colab                         | `just run train.py`                                        |
+| Run it with different parameters              | `just run train.py EPOCHS=1 LIMIT=2000`                    |
+| Resume or repeat a run under the same name    | `just run train.py --run NAME`                             |
 | See what a run left in the bucket             | `just bucket-ls 012-label-smoothing`                       |
 | Fetch a run's files to `.local/out/`          | `just bucket-pull 012-label-smoothing NAME`                |
 | Upload a private dataset                      | `just drive-push ./data datasets/my-set/v1`                |
@@ -88,7 +112,7 @@ Then open your agent and tell it what you want to find out, or open the first Qu
 | See which credentials are in place            | `just auth-check`                                          |
 | Publish a merged experiment's weights         | `just deliver-hub ...` or `just deliver-drive ...`         |
 
-`just` alone lists everything.
+The script commands are run from the experiment's directory. `just` alone lists everything.
 
 ## Layout
 
@@ -96,11 +120,10 @@ Then open your agent and tell it what you want to find out, or open the first Qu
 AGENTS.md  CLAUDE.md          what an agent reads first
 .agents/knowledge/            how to work here: the workflow, Colab and storage
 .agents/skills/               step-by-step procedures, added when one is worth keeping
-justfile  scripts/            commands and the Colab launcher
-packages/<name>/              shared libraries (root uv workspace)
-experiments/<NNN-slug>/       one experiment: README, code, colab.toml, its own lock, results/
+justfile  scripts/            project-wide commands and the Colab launcher
+experiments/<NNN-slug>/       one experiment: README, justfile, single-file scripts and their locks, results/
 template/experiment/          the starter that `just new` copies
-demos/<name>/                 demonstration apps
+demos/<name>/                 one demo: justfile and a single-file app
 reports/<name>/               Quarto reports, drawn from experiments/*/results/
 docs/                         findings that hold beyond one experiment
 ```

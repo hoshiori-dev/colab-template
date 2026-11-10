@@ -2,7 +2,7 @@
 Experiment pull request: keep every section. Open it as a draft at the first push and keep this
 body current: it is the summary of the experiment, not its history. History goes in milestone
 comments (one per major step or lesson, never edited afterwards).
-Engineering pull request (shared library, demo, report, project setup): keep Summary and
+Engineering pull request (demo, report, project setup): keep Summary and
 Verification, delete the rest.
 Merge with a merge commit, so commits cited in an experiment README stay on main.
 -->

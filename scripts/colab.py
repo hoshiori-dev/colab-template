@@ -225,15 +225,13 @@ def run(script, run_name, keep, variables):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    commands = parser.add_subparsers(dest="command", required=True)
-    lock_parser = commands.add_parser("lock")
-    lock_parser.add_argument("script", type=Path)
-    run_parser = commands.add_parser("run")
-    run_parser.add_argument("script", type=Path)
-    run_parser.add_argument("--run", help="run name; reuse one to resume it (default: <UTC time>-<commit>)")
-    run_parser.add_argument("--keep", action="store_true", help="leave the VM running afterwards")
-    run_parser.add_argument("variables", nargs="*", metavar="KEY=VALUE", help="environment variables for the script")
-    args = parser.parse_args()
+    parser.add_argument("command", choices=["lock", "run"])
+    parser.add_argument("script", type=Path)
+    parser.add_argument("--run", help="run: the run name; reuse one to resume it (default: <UTC time>-<commit>)")
+    parser.add_argument("--keep", action="store_true", help="run: leave the VM running afterwards")
+    parser.add_argument("variables", nargs="*", metavar="KEY=VALUE", help="run: environment variables for the script")
+    # Intermixed, so that KEY=VALUE pairs may follow the options.
+    args = parser.parse_intermixed_args()
     script = args.script.resolve()
     if not script.is_file():
         fail(f"{args.script} not found")

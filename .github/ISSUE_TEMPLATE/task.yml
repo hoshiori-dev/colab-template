@@ -1,5 +1,5 @@
 name: Task
-description: Engineering work on a shared library, a demo, a report or the project setup.
+description: Engineering work on a demo, a report or the project setup.
 title: "Task: "
 labels: ["task"]
 body:
