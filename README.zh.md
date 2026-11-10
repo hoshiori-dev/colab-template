@@ -52,19 +52,17 @@ Request 不是日志，重试和每次运行的状态不往里写。
 ## 配置
 
 1. 用这个模版创建仓库，在 dev container 里打开。容器里所有工具都已装好。
-2. 在终端里分别登录：
-   - `colab sessions` 会给出一个链接，同意后把授权码粘回终端。
-   - `gh auth login`
-   - `hf auth login`，供你自己在本机使用 Hub。
-3. 在 `justfile` 顶部设置 `BUCKET` 和 `DRIVE_ROOT`。
-4. 新建一个细粒度的 Hugging Face 令牌，让它只能写这个 bucket 和项目用到的仓库。把 `.env.example` 复制为
-   `.env`，填入令牌。Colab VM 拿到的就是这个令牌，所以权限要收窄。
-5. 用最小的授权范围为 rclone 授权 Google Drive：`rclone config create gdrive drive scope=drive.file`。在这个范围下
-   rclone 只看得到它自己上传的文件，所以私有数据集要用 `just drive-push` 上传，不要从浏览器拖进去。rclone 内置的
-   Google client ID 会在 2026 年内停用，所以请[创建自己的 client ID](https://rclone.org/drive/#making-your-own-client-id)，并在命令里加上
-   `client_id=... client_secret=...`。
-6. 运行 `just init-storage` 和 `just init-labels`。
-7. 在仓库设置里允许 merge commit。实验的 Pull Request 用 merge commit 合并，这样实验 README 引用的提交会留在
+2. 在 `justfile` 顶部设置 `BUCKET` 和 `DRIVE_ROOT`。
+3. 运行 `just auth`。它会补上缺的那几项：Colab 登录、GitHub 登录、rclone 对 Google Drive 的访问。每一项都会给出一个链接，在浏览器里同意即可。
+   - Drive 的授权范围是 `drive.file`：rclone 只看得到它自己上传的文件，所以私有数据集要用 `just drive-push`
+     上传，不要从浏览器拖进去。
+   - rclone 内置的 Google client ID 会在 2026 年内停用。想用自己的，就在运行 `just auth` 之前自己创建 remote：
+     `rclone config create gdrive drive scope=drive.file client_id=... client_secret=...`
+     （[获取方法](https://rclone.org/drive/#making-your-own-client-id)）。
+4. 新建一个细粒度的 Hugging Face 令牌，让它能写 bucket 所在的命名空间和项目用到的仓库，填到 `.env` 的 `HF_TOKEN=`
+   后面。Colab VM 拿到的就是这个令牌，所以权限要收窄。
+5. 反复运行 `just auth-check`，直到每一行都是 `ok`，然后运行 `just init-storage` 和 `just init-labels`。
+6. 在仓库设置里允许 merge commit。实验的 Pull Request 用 merge commit 合并，这样实验 README 引用的提交会留在
    `main` 上。
 
 之后打开你的 Agent，告诉它你想弄清楚什么，或者自己开第一个 Question。
@@ -80,6 +78,7 @@ Request 不是日志，重试和每次运行的状态不往里写。
 | 把一次运行的文件取到 `.local/out/` | `just bucket-pull 012-label-smoothing NAME`                |
 | 上传一个私有数据集               | `just drive-push ./data datasets/my-set/v1`                  |
 | 检查格式、lint 和锁文件          | `just check`                                                 |
+| 查看各项凭据是否就绪             | `just auth-check`                                            |
 | 发布已合并实验的权重             | `just deliver-hub ...` 或 `just deliver-drive ...`           |
 
 单独运行 `just` 会列出全部命令。

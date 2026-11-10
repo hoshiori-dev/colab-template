@@ -52,6 +52,50 @@ new issue slug:
 run *args:
     uv run python scripts/launch.py "$@"
 
+# Report which credentials are in place. Changes nothing; safe to run at any time.
+auth-check:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    missing=0
+    report() {
+        if [ "$1" -eq 0 ]; then echo "ok       $2"; else echo "MISSING  $2: $3"; missing=1; fi
+    }
+    timeout 60 colab sessions </dev/null >/dev/null 2>&1
+    report $? "Colab login" "run 'just auth'"
+    gh auth status >/dev/null 2>&1
+    report $? "GitHub login" "run 'just auth'"
+    [ -n "${HF_TOKEN:-}" ]
+    report $? "HF_TOKEN in .env" "copy .env.example to .env and paste a fine-grained Hugging Face token"
+    if [ -n "${HF_TOKEN:-}" ]; then
+        hf buckets info "$BUCKET" >/dev/null 2>&1
+        report $? "HF_TOKEN reaches bucket $BUCKET" "let the token write to that namespace, then run 'just init-storage'"
+    fi
+    remote="${DRIVE_ROOT%%:*}"
+    rclone listremotes 2>/dev/null | grep -qx "$remote:"
+    report $? "rclone remote '$remote'" "run 'just auth'"
+    if rclone listremotes 2>/dev/null | grep -qx "$remote:"; then
+        rclone lsf "$DRIVE_ROOT" >/dev/null 2>&1
+        report $? "rclone reaches $DRIVE_ROOT" "run 'just init-storage', or 'rclone config reconnect $remote:' if the token expired"
+        echo "         Drive scope: $(rclone config show "$remote" 2>/dev/null | sed -n 's/^scope = //p')"
+    fi
+    exit "$missing"
+
+# Person only: log in to whatever auth-check reports missing. Each step opens a browser link.
+auth:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    timeout 60 colab sessions </dev/null >/dev/null 2>&1 || colab sessions
+    gh auth status >/dev/null 2>&1 || gh auth login
+    remote="${DRIVE_ROOT%%:*}"
+    # drive.file: rclone can reach only the files it uploaded itself.
+    rclone listremotes 2>/dev/null | grep -qx "$remote:" || rclone config create "$remote" drive scope=drive.file
+    [ -f .env ] || cp .env.example .env
+    if ! grep -q -E '^HF_TOKEN=.+' .env; then
+        echo "Create a fine-grained token at https://huggingface.co/settings/tokens that can write to the"
+        echo "namespace of $BUCKET, and paste it after HF_TOKEN= in .env."
+    fi
+    just auth-check
+
 # One-time storage setup: create the private bucket and the Drive project folder.
 init-storage:
     hf buckets create "$BUCKET" --private --exist-ok
