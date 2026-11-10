@@ -27,7 +27,7 @@ Request 不是日志，重试和每次运行的状态不往里写。
 | 研究对象本身，超出这一个实验       | `docs/`                        |
 | 怎样在这个仓库里干活               | `.agents/knowledge/`，或 skill |
 
-**由人合并。** 合并表示接受这个答案，并关闭对应的问题。否定的答案同样关闭问题。合并之后，由人决定是否发布权重。
+**由人合并。** 合并表示接受这个答案，并关闭对应的问题。否定的答案同样关闭问题。合并之后，由人上传权重（先是私有的），并决定是否公开。
 
 ## 用到的工具
 
@@ -37,7 +37,7 @@ Request 不是日志，重试和每次运行的状态不往里写。
 | 公开数据集             | Hugging Face Hub 数据集，固定到某个 revision                           |
 | 私有数据集             | Google Drive，通过 rclone                                              |
 | Checkpoint 和会话文件  | 一个私有的 Hugging Face bucket，每次运行一个前缀                       |
-| 公开权重               | Hugging Face Hub 模型仓库                                              |
+| 对外交付的权重         | Hugging Face Hub 模型仓库，上传时为私有，由你决定何时公开              |
 | 私有权重               | Google Drive                                                           |
 | 依赖                   | uv：依赖以 PEP 723 内联元数据写在每个脚本里，按脚本加锁                |
 | 报告                   | Quarto（HTML，以及通过 Typst 生成的 PDF）                              |
@@ -138,6 +138,9 @@ docs/                         超出单个实验的结论
 - 配套的工程以 Task 的形式完成：demo [`demos/digit-sketch/`](demos/digit-sketch)（[#5](https://github.com/hoshiori-dev/colab-template/issues/5)）和报告
   [`reports/affine-augmentation/`](reports/affine-augmentation)（[#6](https://github.com/hoshiori-dev/colab-template/issues/6)）。第三个 Task 是一个共享库（[#4](https://github.com/hoshiori-dev/colab-template/issues/4)），做完之后又去掉了，因为项目决定实验和
   demo 不应依赖共享代码；demo 里带着模型的一份副本。
+
+范例的权重上传在 `discovery-loop/colab-template-mnist-cnn`，这个仓库是私有的。没有访问权限时想试用 demo，可以先跑一遍实验，再让
+demo 使用得到的文件：`DIGITS_WEIGHTS=<model.safetensors 的路径> just serve`。
 
 范例里的私有数据集只是替身：它是公开 MNIST 测试集加了扰动的副本，由脚本生成，放在 Drive 上只是为了走通这条路径。
 

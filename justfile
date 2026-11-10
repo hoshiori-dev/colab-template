@@ -152,11 +152,11 @@ drive-pull remote local:
 drive-ls path="":
     rclone lsf "$DRIVE_ROOT/{{ path }}"
 
-# Person only, after merge: publish a run's deliver/ as a public Hub model repo (namespace/name).
-[confirm("Publish this run's deliver/ directory to a PUBLIC Hugging Face model repo?")]
+# Person only, after merge: upload a run's deliver/ as a private Hub model repo (namespace/name).
+[confirm("Upload this run's deliver/ directory to a private Hugging Face model repo?")]
 deliver-hub exp run repo: (bucket-pull exp run)
     test -d ".local/out/$1/$2/deliver"
-    hf upload "$3" ".local/out/$1/$2/deliver" . --repo-type model --no-private --commit-message "deliver $1/$2"
+    hf upload "$3" ".local/out/$1/$2/deliver" . --repo-type model --private --commit-message "deliver $1/$2"
 
 # Person only, after merge: copy a run's deliver/ to a path under DRIVE_ROOT.
 deliver-drive exp run remote: (bucket-pull exp run)

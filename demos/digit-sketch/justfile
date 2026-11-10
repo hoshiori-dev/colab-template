@@ -1,6 +1,7 @@
 # Commands of this demo. A recipe not defined here falls back to the root justfile.
 
 set fallback
+set dotenv-load
 
 # Start the app at http://127.0.0.1:7860 (Ctrl-C stops it).
 serve:

@@ -13,8 +13,9 @@
 
     just serve          # in this directory; or: uv run app.py
 
-The weights come from the Hub repository below. Set DIGITS_WEIGHTS to a local
-model.safetensors to try another checkpoint.
+The weights come from the Hub repository below. While that repository is private, the
+download needs a token that can read it: `just serve` passes HF_TOKEN from the project's
+.env. Set DIGITS_WEIGHTS to a local model.safetensors to use a file instead.
 """
 
 import os
