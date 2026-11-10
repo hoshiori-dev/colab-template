@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
+  "name": "colab-template",
+  "image": "mcr.microsoft.com/devcontainers/base:noble",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": true
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/git-lfs:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/hoshiori-dev/devcontainer-features/colab-cli:1": {},
+    "ghcr.io/hoshiori-dev/devcontainer-features/hf-cli:1": {},
+    "ghcr.io/hoshiori-dev/devcontainer-features/hf-mount:1": {},
+    "ghcr.io/hoshiori-dev/devcontainer-features/quarto:1": {},
+    "ghcr.io/hoshiori-dev/devcontainer-features/rclone:1": {},
+    "ghcr.io/hoshiori-dev/devcontainer-features/uv:1": {
+      "toolsToInstall": "pre-commit,rust-just"
+    }
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "deno.enable": true
+      },
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "denoland.vscode-deno",
+        "EditorConfig.EditorConfig",
+        "ms-vscode-remote.remote-containers",
+        "anthropic.claude-code",
+        "openai.chatgpt",
+        "google.google-antigravity"
+      ]
+    }
+  }
+}

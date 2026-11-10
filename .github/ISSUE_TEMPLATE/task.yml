@@ -1,0 +1,26 @@
+name: Task
+description: Engineering work on a demo, a report or the project setup.
+title: "Task: "
+labels: ["task"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: What should exist or change.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What needs it, including the issue or experiment it serves.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: How to tell that the work is finished.
+    validations:
+      required: true

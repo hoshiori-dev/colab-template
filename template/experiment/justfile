@@ -1,0 +1,11 @@
+# Commands of this experiment. A recipe not defined here falls back to the root justfile,
+# so `just run main.py`, `just lock main.py`, `just bucket-ls` and the rest work from this
+# directory. Add a recipe when a step of the experiment is worth a name.
+
+set fallback
+
+exp := file_name(justfile_directory())
+
+# Fetch a run's files from the bucket to .local/out/<this experiment>/<run>/ at the repository root.
+pull run:
+    just bucket-pull {{ exp }} {{ run }}

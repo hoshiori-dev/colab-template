@@ -1,0 +1,31 @@
+name: Question
+description: A research question. An experiment pull request answers it and closes it.
+title: "Question: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Attach the question to its epic as a sub-issue when it has one. Discussion, proposals and
+        intermediate thoughts go in the comments; the experiment itself is recorded in its pull request.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: One question, specific enough that an experiment can answer it.
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: Background
+      description: What prompted the question, including the observation, issue or pull request it came from.
+    validations:
+      required: true
+  - type: textarea
+    id: answer
+    attributes:
+      label: What would count as an answer
+      description: The evidence that would settle it, and which outcome would mean which answer. A negative answer counts.
+    validations:
+      required: true
