@@ -60,7 +60,9 @@ Request 不是日志，重试和每次运行的状态不往里写。
 4. 新建一个细粒度的 Hugging Face 令牌，让它只能写这个 bucket 和项目用到的仓库。把 `.env.example` 复制为
    `.env`，填入令牌。Colab VM 拿到的就是这个令牌，所以权限要收窄。
 5. 用最小的授权范围为 rclone 授权 Google Drive：`rclone config create gdrive drive scope=drive.file`。在这个范围下
-   rclone 只看得到它自己上传的文件，所以私有数据集要用 `just drive-push` 上传，不要从浏览器拖进去。
+   rclone 只看得到它自己上传的文件，所以私有数据集要用 `just drive-push` 上传，不要从浏览器拖进去。rclone 内置的
+   Google client ID 会在 2026 年内停用，所以请[创建自己的 client ID](https://rclone.org/drive/#making-your-own-client-id)，并在命令里加上
+   `client_id=... client_secret=...`。
 6. 运行 `just init-storage` 和 `just init-labels`。
 7. 在仓库设置里允许 merge commit。实验的 Pull Request 用 merge commit 合并，这样实验 README 引用的提交会留在
    `main` 上。

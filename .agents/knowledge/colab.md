@@ -54,7 +54,8 @@ on the VM and on a laptop.
 `rclone` is authorized with the scope `drive.file`: it sees only files that rclone itself uploaded. A dataset
 dragged into Drive through the browser is invisible to it, so upload with `just drive-push <local-dir>
 datasets/<name>/<version>`. The launcher passes the rclone remote's configuration to the VM; nothing on the VM
-mounts Drive.
+mounts Drive. rclone's built-in Google client ID is being retired during 2026 (rclone prints a notice on every
+call); the remote should use a client ID of the project's own, see README.md, Setup.
 
 ## Delivery
 
@@ -80,7 +81,13 @@ Hub) and name the run to deliver in the pull request body. Clean up afterwards w
   run uv by hand in `colab exec`, use `uv sync` / `uv run` in a project and unset them.
 - On the VM `hf-mount` works only with `--fuse` (there is no `mount.nfs`). The launcher does not mount at all: it
   syncs a plain directory, which survives any write pattern.
-- A fresh `uv sync` of PyTorch with CUDA wheels takes about 90 seconds and 5.5 GB on the VM.
+- A fresh `uv sync` of PyTorch with CUDA wheels takes about 90 seconds and 5.5 GB on the VM. With VM creation and
+  the Drive copy, a launch spends about two minutes before the command starts; put several short trainings in one
+  launch.
+- A child process started by code under `colab exec` writes to the kernel's own stdout, which the CLI never shows.
+  The bootstrap relays every child's output through `print` (`relay` in `vm_bootstrap.py`); do the same in any code
+  you send with `colab exec`, or a failing tool looks like silence.
+- `downloads.rclone.org` answers Python's `urllib` with 403; `curl` works.
 
 ## When a run fails
 

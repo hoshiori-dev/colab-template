@@ -8,7 +8,6 @@ that disappears loses at most a minute of files.
 Standard library only: it runs before any project dependency is installed.
 """
 
-import io
 import json
 import os
 import shutil
@@ -16,7 +15,6 @@ import subprocess
 import tarfile
 import threading
 import traceback
-import urllib.request
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,20 +26,38 @@ RCLONE_VERSION = "v1.76.0"
 SYNC_SECONDS = 60
 
 
+def relay(cmd, env, cwd=None, log=None):
+    """Run a command and return its exit code, printing its output line by line.
+
+    A child process's own stdout never reaches the notebook's output stream, so without
+    this relay its messages, errors included, would be invisible to `colab exec`.
+    """
+    header = f"[vm] $ {' '.join(str(part) for part in cmd)}\n"
+    process = subprocess.Popen(cmd, env=env, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for line in [header, *process.stdout]:
+        print(line, end="", flush=True)
+        if log:
+            log.write(line)
+            log.flush()
+    return process.wait()
+
+
 def sh(cmd, env, cwd=None):
-    print(f"[vm] $ {' '.join(str(part) for part in cmd)}", flush=True)
-    subprocess.run(cmd, env=env, cwd=cwd, check=True)
+    code = relay(cmd, env, cwd)
+    if code:
+        raise RuntimeError(f"{cmd[0]} exited with {code}")
 
 
 def install_rclone(env):
     name = f"rclone-{RCLONE_VERSION}-linux-amd64"
-    url = f"https://downloads.rclone.org/{RCLONE_VERSION}/{name}.zip"
-    print(f"[vm] installing rclone {RCLONE_VERSION}", flush=True)
-    with urllib.request.urlopen(url) as response:
-        archive = zipfile.ZipFile(io.BytesIO(response.read()))
+    archive = Path(f"/content/{name}.zip")
+    # curl, because downloads.rclone.org answers Python's urllib with 403.
+    sh(["curl", "-fsSL", "-o", str(archive), f"https://downloads.rclone.org/{RCLONE_VERSION}/{name}.zip"], env)
     target = Path("/usr/local/bin/rclone")
-    target.write_bytes(archive.read(f"{name}/rclone"))
+    with zipfile.ZipFile(archive) as bundle:
+        target.write_bytes(bundle.read(f"{name}/rclone"))
     target.chmod(0o755)
+    archive.unlink()
     sh(["rclone", "version"], env)
 
 
@@ -80,15 +96,13 @@ def main():
 
     sh(["uv", "sync", "--locked"], env, cwd=exp_dir)
 
-    def sync_up(check):
-        subprocess.run(["hf", "sync", str(out_dir), bucket_url, "--quiet"], env=env, check=check)
-
+    upload = ["hf", "sync", str(out_dir), bucket_url, "--quiet"]
     finished = threading.Event()
 
     def sync_periodically():
         # A failed periodic sync is tolerated: the next one, or the final one below, retries.
         while not finished.wait(SYNC_SECONDS):
-            sync_up(check=False)
+            subprocess.run(upload, env=env, capture_output=True)
 
     syncer = threading.Thread(target=sync_periodically, daemon=True)
     syncer.start()
@@ -102,25 +116,17 @@ def main():
     )
     command = ["uv", "run", "--locked", *spec["command"]]
     with open(out_dir / "run.log", "a") as log:
-
-        def emit(line):
-            print(line, end="", flush=True)
-            log.write(line)
-            log.flush()
-
-        emit(f"[vm] {datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ} commit {spec['commit']} gpu {gpu}\n")
-        emit(f"[vm] $ {' '.join(command)}\n")
-        process = subprocess.Popen(
-            command, cwd=exp_dir, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
-        )
-        for line in process.stdout:
-            emit(line)
-        code = process.wait()
-        emit(f"[vm] command exited with {code}\n")
+        header = f"[vm] {datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ} commit {spec['commit']} gpu {gpu}\n"
+        print(header, end="", flush=True)
+        log.write(header)
+        code = relay(command, env, cwd=exp_dir, log=log)
+        footer = f"[vm] command exited with {code}\n"
+        print(footer, end="", flush=True)
+        log.write(footer)
 
     finished.set()
     syncer.join()
-    sync_up(check=True)
+    sh(upload, env)
     print(f"[vm] outputs: {bucket_url}", flush=True)
     return code
 
