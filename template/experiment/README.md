@@ -28,5 +28,5 @@ on the way, what did not work, what remains uncertain.
 
 ## Reproduce
 
-The commit, the `just run` commands as actually used, the accelerator, and the version of
-every dataset read (Hub revision, Drive folder).
+The commit, the `just run` commands as actually used with their run names, the accelerator, and the version of every
+dataset read (Hub revision, Drive folder).

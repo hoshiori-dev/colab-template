@@ -1,10 +1,12 @@
-# Command entry points. `just` lists them. Scripts live in scripts/.
+# Commands shared by the whole project. `just` lists them. An experiment or demo has its
+# own justfile for its own commands and falls back to this one, so every recipe here also
+# works from inside experiments/<id>/ or demos/<name>/.
 
 set dotenv-load
 set positional-arguments
 
-# Storage backends of this project. Edit these two lines when you adopt the template;
-# secrets go in .env (see .env.example), never here.
+# Storage backends of this project. Edit these when you adopt the template; secrets go in
+# .env (see .env.example), never here.
 
 # Hugging Face bucket (namespace/name) holding each run's session files.
 export BUCKET := "discovery-loop/colab-template"
@@ -12,9 +14,13 @@ export BUCKET := "discovery-loop/colab-template"
 # rclone remote:path of the project folder on Google Drive.
 export DRIVE_ROOT := "gdrive:colab-template"
 
+# Python version of the Colab kernel; requirements files are resolved for it.
+export COLAB_PYTHON := "3.13"
+
 # Same ruff version as the ruff-pre-commit rev in .pre-commit-config.yaml.
 
 ruff := "uvx ruff@0.11.9"
+colab := "uv run --no-project python " + quote(justfile_directory() / "scripts/colab.py")
 
 _default:
     @just --list --unsorted
@@ -23,9 +29,13 @@ _default:
 check:
     #!/usr/bin/env bash
     set -euo pipefail
+    shopt -s nullglob
     {{ ruff }} check .
     {{ ruff }} format --check .
-    for project in . experiments/*/ demos/*/; do
+    for lock in template/*/*.py.lock experiments/*/*.py.lock demos/*/*.py.lock; do
+        uv lock --script "${lock%.lock}" --check
+    done
+    for project in reports/*/; do
         if [ -f "$project/pyproject.toml" ]; then uv lock --check --project "$project"; fi
     done
 
@@ -43,13 +53,18 @@ new issue slug:
     if [ -e "$dir" ]; then echo "$dir already exists" >&2; exit 1; fi
     mkdir -p experiments
     cp -r template/experiment "$dir"
-    sed -i "s/EXPERIMENT_ID/$id/g; s/ISSUE_NUMBER/$1/g" "$dir/README.md" "$dir/pyproject.toml"
-    uv lock --project "$dir"
+    sed -i "s/EXPERIMENT_ID/$id/g; s/ISSUE_NUMBER/$1/g" "$dir/README.md"
     echo "created $dir"
 
-# Run on a fresh Colab VM: just run <exp-id> [--run NAME] [--keep] -- <command...>
-run *args:
-    uv run python scripts/launch.py "$@"
+# Lock a script's inline dependencies; a Colab script also gets its requirements file.
+[no-cd]
+lock script:
+    cd {{ quote(invocation_directory()) }} && {{ colab }} lock "$1"
+
+# Run a script on a fresh Colab VM: just run <script.py> [--run NAME] [--keep] [KEY=VALUE ...]
+[no-cd]
+run script *args:
+    cd {{ quote(invocation_directory()) }} && {{ colab }} run "$@"
 
 # Report which credentials are in place. Changes nothing; safe to run at any time.
 auth-check:
@@ -120,12 +135,14 @@ bucket-rm path:
     hf buckets remove "$BUCKET/$1" --recursive
 
 # Upload a local directory to a path under DRIVE_ROOT.
+[no-cd]
 drive-push local remote:
-    rclone copy --progress "$1" "$DRIVE_ROOT/$2"
+    cd {{ quote(invocation_directory()) }} && rclone copy --progress "$1" "$DRIVE_ROOT/$2"
 
 # Download a path under DRIVE_ROOT to a local directory.
+[no-cd]
 drive-pull remote local:
-    rclone copy --progress "$DRIVE_ROOT/$1" "$2"
+    cd {{ quote(invocation_directory()) }} && rclone copy --progress "$DRIVE_ROOT/$1" "$2"
 
 # List a path under DRIVE_ROOT.
 drive-ls path="":

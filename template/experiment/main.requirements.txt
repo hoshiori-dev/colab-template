@@ -1,0 +1,2 @@
+# Written by `just lock main.py` for Colab: Python 3.13, accelerator cpu. Do not edit.
+--index-url https://pypi.org/simple
