@@ -67,7 +67,8 @@ changes this file.
 1. Refuses to start when the script's directory has uncommitted changes, or when the requirements file does not
    match the lock.
 2. `colab new` with the script's accelerator.
-3. `colab install -r <stem>.requirements.txt`, then restarts the kernel so no replaced package stays imported.
+3. `colab install -r <stem>.requirements.txt`, which prints nothing until it is done, then restarts the kernel so
+   no replaced package stays imported.
 4. Puts the secrets and run variables into the kernel's environment, mounts `$BUCKET/<directory>/<run>/` at
    `/content/out` with `hf-mount`, and copies each Drive input with rclone.
 5. `colab exec -f <script.py>`, with every `KEY=VALUE` passed as an environment variable.
@@ -75,7 +76,8 @@ changes this file.
 
 The exit status of `just run` is 0 when the script finished, 1 when it raised, or the script's own `sys.exit` code.
 The run name defaults to `<UTC time>-<commit>`. A launch without dependencies to install takes about 20 seconds
-from start to finish.
+from start to finish; one that installs PyTorch on a T4 took about four minutes, of which the six trainings of
+experiment 003 were under one.
 
 `KEY=VALUE` pairs end up in the Colab CLI's local history file; use them for parameters, never for secrets.
 
@@ -96,6 +98,9 @@ deliver in the pull request body. Clean up afterwards with `just bucket-rm <exp-
 
 ## Pitfalls, each one observed
 
+- `colab install` waits only ten seconds for the kernel and has no timeout option, so a PyTorch download ends in
+  `TimeoutError: Timeout waiting for reply`. The wait is the environment variable `REQUEST_TIMEOUT` of the CLI's
+  kernel client; `colab.py` sets it to an hour for that one command.
 - `colab exec` and `colab install` exit 0 even when the code raised in the kernel. The kernel keeps the last
   uncaught exception in `sys.last_value`; `scripts/vm_status.py` and `vm_finish.py` read it, and `just run` turns it
   into an exit status.
@@ -114,6 +119,12 @@ deliver in the pull request body. Clean up afterwards with `just bucket-rm <exp-
   against the list in `colab new --help`; update `GPUS` and `TPUS` there when that list changes.
 - GPU allocation fails intermittently, and an idle session can disappear within minutes. Retry the launch; do not
   build a workflow on a session that waits.
+- After a failed launch, run `colab sessions`. Once, `colab new` reported "Allocation refused" while a T4 stayed
+  allocated on the server, listed as `[?]` and billed. `colab stop` cannot stop a session it has no local record
+  of; `just colab-release <name shown after [?]>` does.
+- Requirements are installed over Colab's preinstalled packages, not into an empty environment. Everything the
+  script declares is pinned, but a preinstalled package outside its dependency tree keeps Colab's version (pandas
+  warned about an older `bottleneck` in experiment 003). Declare what the script imports.
 - The kernel's environment has `UV_SYSTEM_PYTHON=true`: `uv pip install` on the VM targets the system Python, the
   one the kernel runs. `colab install` relies on this.
 - `downloads.rclone.org` answers Python's `urllib` with 403; `curl` works.

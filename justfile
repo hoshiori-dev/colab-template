@@ -66,6 +66,10 @@ lock script:
 run script *args:
     cd {{ quote(invocation_directory()) }} && {{ colab }} run "$@"
 
+# Release a VM that `colab sessions` lists as [?]; `colab stop` cannot reach one it has no record of.
+colab-release endpoint:
+    "$(dirname "$(readlink -f "$(command -v colab)")")/python" -c 'import sys; from colab_cli.common import state; state.client.unassign(sys.argv[1]); print("released", sys.argv[1])' "$1"
+
 # Report which credentials are in place. Changes nothing; safe to run at any time.
 auth-check:
     #!/usr/bin/env bash

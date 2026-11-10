@@ -170,7 +170,8 @@ def run(script, run_name, keep, variables):
     }
 
     def colab_cli(*args, **kwargs):
-        return subprocess.run(["colab", *args], check=True, **kwargs)
+        if subprocess.run(["colab", *args], **kwargs).returncode:
+            fail(f"`colab {args[0]}` failed; `colab sessions` shows what is still allocated")
 
     def step(code_file):
         """Execute a helper in the kernel and return the status it reports on its last line.
@@ -197,7 +198,10 @@ def run(script, run_name, keep, variables):
     colab_cli("new", "-s", run_name, *new_flags)
     try:
         if any(line.strip() and not line.startswith(("#", "-")) for line in requirements.read_text().splitlines()):
-            colab_cli("install", "-s", run_name, "-r", str(requirements))
+            # `colab install` waits REQUEST_TIMEOUT seconds (default 10) for the kernel and prints
+            # nothing while uv works; a PyTorch download needs minutes.
+            print(f"colab.py: installing {requirements.name} (silent until done)", flush=True)
+            colab_cli("install", "-s", run_name, "-r", str(requirements), env={**os.environ, "REQUEST_TIMEOUT": "3600"})
             if step(HERE / "vm_status.py") != "0":
                 fail(f"`colab install -r {requirements.name}` failed on the VM")
             # Packages the kernel had already imported may just have been replaced.
