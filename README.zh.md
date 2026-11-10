@@ -101,6 +101,8 @@ bucket 里的文件接着跑。Colab 会话会毫无预警地结束，所以这�
 | 上传一个私有数据集               | `just drive-push ./data datasets/my-set/v1`                  |
 | 检查格式、lint 和锁文件          | `just check`                                                 |
 | 查看各项凭据是否就绪             | `just auth-check`                                            |
+| 把报告渲染成 HTML 和 PDF         | 在报告目录里运行 `just render`                               |
+| 启动 demo                        | 在 demo 目录里运行 `just serve`                              |
 | 发布已合并实验的权重             | `just deliver-hub ...` 或 `just deliver-drive ...`           |
 
 和脚本有关的命令在实验目录里运行。单独运行 `just` 会列出全部命令。
@@ -120,6 +122,29 @@ docs/                         超出单个实验的结论
 ```
 
 一个目录在有内容可放时才出现。
+
+## 范例
+
+仓库里带着一个小的研究项目。它是通过仓库自己的 Issue 和 Pull Request 做出来的，这样工作流可以从一个真实的例子里读出来，不只是看描述。
+
+- 方向是一个 Epic：[#2](https://github.com/hoshiori-dev/colab-template/issues/2)，研究一个小型数字分类器怎样应对旋转、平移和缩放过的数字。
+- 它下面的第一个 Question 是 [#3](https://github.com/hoshiori-dev/colab-template/issues/3)：仿射增强能否消除扰动数字上的准确率差距？实验计划在运行之前就贴在那里，答案出来之后也贴在那里。
+- 回答它的实验记录在 [#8](https://github.com/hoshiori-dev/colab-template/pull/8)。里程碑评论展示了一份记录是什么样子：第一次跑通以及途中发现的 bug，实验结果，以及项目设计调整之后的第二次运行，这次运行修正了第一次的一条发现。
+  [`experiments/003-affine-augmentation/`](experiments/003-affine-augmentation/README.md)
+  里是脚本、结果和答案：增强把扰动数字上的准确率从 84.0% 提高到 97.5%，还剩 1.1 个点的差距。
+- 实验学到的东西去了三个地方：实验的 README；[`docs/geometric-shift.md`](docs/geometric-shift.md)，放超出这个实验的结论；[`.agents/knowledge/colab.md`](.agents/knowledge/colab.md)，放在
+  Colab 上运行的经验。
+- 实验顺带注意到的两件事成了 [#9](https://github.com/hoshiori-dev/colab-template/issues/9) 和 [#10](https://github.com/hoshiori-dev/colab-template/issues/10)。它们特意留着没做：想试用这个模版的话，任选一个都适合作为第一个实验。
+- 配套的工程以 Task 的形式完成：demo [`demos/digit-sketch/`](demos/digit-sketch)（[#5](https://github.com/hoshiori-dev/colab-template/issues/5)）和报告
+  [`reports/affine-augmentation/`](reports/affine-augmentation)（[#6](https://github.com/hoshiori-dev/colab-template/issues/6)）。第三个 Task 是一个共享库（[#4](https://github.com/hoshiori-dev/colab-template/issues/4)），做完之后又去掉了，因为项目决定实验和
+  demo 不应依赖共享代码；demo 里带着模型的一份副本。
+
+范例里的私有数据集只是替身：它是公开 MNIST 测试集加了扰动的副本，由脚本生成，放在 Drive 上只是为了走通这条路径。
+
+## 开始你自己的项目
+
+用模版创建仓库时，Issue 和 Pull Request 不会被复制，所以范例的历史只留在这里。删掉它的文件：`experiments/003-affine-augmentation/`、`demos/digit-sketch/`、`reports/affine-augmentation/`
+和 `docs/`。没有别的文件引用它们。把 `justfile` 里的 `BUCKET` 和 `DRIVE_ROOT` 指向你自己的存储，再把这一节和上一节换成你的项目介绍。
 
 ## Agent
 
