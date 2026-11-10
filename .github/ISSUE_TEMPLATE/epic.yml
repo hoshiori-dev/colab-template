@@ -1,0 +1,24 @@
+name: Epic
+description: A direction of research. It groups the questions asked under it and needs no approval.
+title: "Epic: "
+labels: ["epic"]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What this line of research is trying to find out or achieve, and why it is worth the effort.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What belongs to this direction and what is deliberately left out.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Limits every question under this epic inherits, such as compute, data that may be used, or a deadline.
