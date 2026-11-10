@@ -58,22 +58,18 @@ the same run name resumes from the bucket, which matters because Colab sessions 
 ## Setup
 
 1. Create a repository from this template and open it in the dev container. The container has every tool installed.
-2. Log in, each in the terminal:
-   - `colab sessions` prints a link; approve and paste the code back.
-   - `gh auth login`
-   - `hf auth login`, for your own use of the Hub from this machine.
-3. Set `BUCKET` and `DRIVE_ROOT` at the top of the `justfile`.
-4. Create a fine-grained Hugging Face token that can write to that bucket and to the repositories the project uses,
-   copy `.env.example` to `.env`, and put the token there. This is the token the Colab VM receives, so keep it
-   narrow.
-5. Authorize rclone for Google Drive with the narrowest scope:
-   `rclone config create gdrive drive scope=drive.file`. With this scope rclone sees only the files it uploaded
-   itself, so private datasets go to Drive through `just drive-push`, not through the browser. rclone's built-in
-   Google client ID is being retired during 2026, so
-   [create your own](https://rclone.org/drive/#making-your-own-client-id) and add `client_id=... client_secret=...`
-   to the command.
-6. Run `just init-storage` and `just init-labels`.
-7. In the repository settings, allow merge commits. Experiment pull requests are merged with a merge commit so that
+2. Set `BUCKET` and `DRIVE_ROOT` at the top of the `justfile`.
+3. Run `just auth`. It walks through whatever is missing: the Colab login, the GitHub login and rclone's access to
+   Google Drive. Each prints a link to approve in a browser.
+   - Drive access is requested with the scope `drive.file`: rclone sees only the files it uploaded itself, so private
+     datasets go to Drive through `just drive-push`, not through the browser.
+   - rclone's built-in Google client ID is being retired during 2026. To use your own, create the remote yourself
+     before `just auth`: `rclone config create gdrive drive scope=drive.file client_id=... client_secret=...`
+     ([how to get one](https://rclone.org/drive/#making-your-own-client-id)).
+4. Create a fine-grained Hugging Face token that can write to the bucket's namespace and to the repositories the
+   project uses, and put it in `.env` after `HF_TOKEN=`. This is the token the Colab VM receives, so keep it narrow.
+5. Run `just auth-check` until every line says `ok`, then `just init-storage` and `just init-labels`.
+6. In the repository settings, allow merge commits. Experiment pull requests are merged with a merge commit so that
    the commits an experiment README cites remain on `main`.
 
 Then open your agent and tell it what you want to find out, or open the first Question yourself.
@@ -89,6 +85,7 @@ Then open your agent and tell it what you want to find out, or open the first Qu
 | Fetch a run's files to `.local/out/`          | `just bucket-pull 012-label-smoothing NAME`                |
 | Upload a private dataset                      | `just drive-push ./data datasets/my-set/v1`                |
 | Check formatting, lint and lock files         | `just check`                                               |
+| See which credentials are in place            | `just auth-check`                                          |
 | Publish a merged experiment's weights         | `just deliver-hub ...` or `just deliver-drive ...`         |
 
 `just` alone lists everything.

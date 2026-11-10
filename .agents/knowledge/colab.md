@@ -92,6 +92,7 @@ Hub) and name the run to deliver in the pull request body. Clean up afterwards w
 ## When a run fails
 
 Read the output from the top: the bootstrap prints each step as `[vm] $ <command>`. A failure before the experiment's
-command is a setup problem (token scope, missing Drive folder, stale lock); `just bucket-pull <exp-id> <run>` fetches
+command is a setup problem (token scope, missing Drive folder, stale lock): run `just auth-check` first, and ask the
+user to run `just auth` when it reports something missing, since logging in needs a person and a browser; `just bucket-pull <exp-id> <run>` fetches
 `run.log` for a failure inside it. After fixing a pitfall that is not listed above, add it to the list in the same
 pull request.
